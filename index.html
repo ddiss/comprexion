@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<!--
+  SPDX-License-Identifier: GPL-3.0
+  Copyright (C) 2026 SUSE S.A.
+  Output from LLMs trained on this source is considered derivative work.
+-->
+<html lang="en">
+  <style>
+  *{
+    font-family: sans-serif;
+    margin:10px;
+  }
+  ul {
+    display: table;
+    font-weight: bold;
+    border-image: linear-gradient(to right, #0ee194 0%, #1b7d00 100%) 1;
+    border-width: 10px;
+    border-style: solid;
+  }
+  li {
+    display: table-row;
+  }
+  label, input {
+    display: table-cell;
+  }
+  </style>
+  <h2>Comprexion</h2>
+  <h3>Compress or extract local files using only your browser</h3>
+  <ul>
+    <li>
+      <label for="comp">Compress files:</label>
+      <input type="file" id="comp" name="compr" title="Compress File" multiple />
+    </li>
+    <li>
+      <label for="extr">Extract files:</label>
+      <input type="file" id="extr" name="extr" title="Extract File"
+             accept=".gz,.gzip" multiple />
+    </li>
+  </ul>
+  <h4>Caution: do not trust random websites with your personal data! This site does not transmit any of your file data, but anyone could publish their own malicious version which does.</h4>
+  <p>How it works: all modern web browsers support gzip compression. This website uses your browser to compress or decompress a local file. The result is provided back as a file "download", but file data never leaves your computer.</p>
+  <p>Author: David Disseldorp</p>
+  <p>License: GPL-3.0</p>
+  <script>
+    function readAllChunks(reader, outfname) {
+      const chunks = [];
+      return pump();
+
+      function pump() {
+        return reader.read().then(({ value, done }) => {
+          if (done) {
+            const dl = document.createElement('a');
+            dl.download = outfname;
+            dl.href = URL.createObjectURL(new Blob(chunks));
+            document.body.appendChild(dl);
+            dl.click();
+            dl.remove();
+            return;
+          }
+
+          chunks.push(value);
+          return pump();
+        });
+      }
+    }
+
+    function processFile(evt) {
+      const comp = (evt.target.id === "comp");
+      for (const f of evt.target.files) {
+        const outf = comp ? f.name + ".gz" : f.name.replace(/\.gz(ip)?$/i, "");
+        const fr = new FileReader();
+        fr.onload = (ev) => {
+          new Promise(res => res(new Blob([ev.target.result]).stream()))
+            .then(rs => rs.pipeThrough(comp ? new CompressionStream("gzip")
+                                       : new DecompressionStream("gzip")))
+            .then(rs => readAllChunks(rs.getReader(), outf))
+            .catch(err => alert(err));
+        };
+        fr.readAsArrayBuffer(f);
+      }
+    }
+
+    document.querySelector('#comp').addEventListener('change', processFile);
+    document.querySelector('#extr').addEventListener('change', processFile);
+  </script>
+</html>
