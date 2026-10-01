@@ -42,35 +42,21 @@
   <p>Author: David Disseldorp</p>
   <p>License: GPL-3.0</p>
   <script>
-    function readAllChunks(reader, outfname) {
-      const chunks = [];
-      return pump();
-
-      function pump() {
-        return reader.read().then(({ value, done }) => {
-          if (done) {
-            const dl = document.createElement('a');
-            dl.download = outfname;
-            dl.href = URL.createObjectURL(new Blob(chunks));
-            document.body.appendChild(dl);
-            dl.click();
-            dl.remove();
-            return;
-          }
-
-          chunks.push(value);
-          return pump();
-        });
-      }
-    }
-
     function processFile(evt) {
       const comp = (evt.target.id === "comp");
       for (const f of evt.target.files) {
         const outf = comp ? f.name + ".gz" : f.name.replace(/\.gz(ip)?$/i, "");
         let cs = comp ? new CompressionStream("gzip") : new DecompressionStream("gzip");
         let rs = f.stream().pipeThrough(cs);
-        new Promise(res => res(readAllChunks(rs.getReader(), outf)))
+        new Response(rs).blob()
+          .then(blob => {
+            const dl = document.createElement('a');
+            dl.download = outf;
+            dl.href = URL.createObjectURL(blob);
+            document.body.appendChild(dl);
+            dl.click();
+            dl.remove();
+          })
           .catch(err => alert(err));
       }
     }
