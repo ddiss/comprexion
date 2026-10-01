@@ -68,15 +68,10 @@
       const comp = (evt.target.id === "comp");
       for (const f of evt.target.files) {
         const outf = comp ? f.name + ".gz" : f.name.replace(/\.gz(ip)?$/i, "");
-        const fr = new FileReader();
-        fr.onload = (ev) => {
-          new Promise(res => res(new Blob([ev.target.result]).stream()))
-            .then(rs => rs.pipeThrough(comp ? new CompressionStream("gzip")
-                                       : new DecompressionStream("gzip")))
-            .then(rs => readAllChunks(rs.getReader(), outf))
-            .catch(err => alert(err));
-        };
-        fr.readAsArrayBuffer(f);
+        let cs = comp ? new CompressionStream("gzip") : new DecompressionStream("gzip");
+        let rs = f.stream().pipeThrough(cs);
+        new Promise(res => res(readAllChunks(rs.getReader(), outf)))
+          .catch(err => alert(err));
       }
     }
 
