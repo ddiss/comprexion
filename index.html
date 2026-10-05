@@ -6,37 +6,32 @@
 -->
 <html lang="en">
   <style>
-  *{
+  body {
     font-family: sans-serif;
     margin:10px;
   }
-  ul {
-    display: table;
-    font-weight: bold;
+  .gr {
+    display: grid;
+    grid-template-columns: 1fr 2fr;
     border-image: linear-gradient(to right, #0ee194 0%, #1b7d00 100%) 1;
     border-width: 10px;
     border-style: solid;
+    grid-auto-rows: 40px;
+    align-items: center;
   }
-  li {
-    display: table-row;
-  }
-  label, input {
-    display: table-cell;
+  label {
+    font-weight: bold;
   }
   </style>
   <h2>Comprexion</h2>
   <h3>Compress or extract local files using only your browser</h3>
-  <ul>
-    <li>
-      <label for="comp">Compress files:</label>
-      <input type="file" id="comp" name="compr" title="Compress File" multiple />
-    </li>
-    <li>
-      <label for="extr">Extract files:</label>
-      <input type="file" id="extr" name="extr" title="Extract File"
-             accept=".gz,.gzip" multiple />
-    </li>
-  </ul>
+  <div id="gr" class="gr">
+    <label for="comp">Compress files:</label>
+    <input type="file" id="comp" name="compr" title="Compress File" multiple />
+    <label for="extr">Extract files:</label>
+    <input type="file" id="extr" name="extr" title="Extract File"
+           accept=".gz,.gzip" multiple />
+  </div>
   <h4>Caution: do not trust random websites with your personal data! This site does not transmit any of your file data, but anyone could publish their own malicious version which does.</h4>
   <p>How it works: all modern web browsers support gzip compression. This website uses your browser to compress or decompress a local file. The result is provided back as a file "download", but file data never leaves your computer.</p>
   <p>Author: David Disseldorp</p>
