@@ -37,12 +37,45 @@
   <p>Author: David Disseldorp</p>
   <p>License: GPL-3.0</p>
   <script>
+    function node(el, attrs) {
+      const e = document.createElementNS("http://www.w3.org/2000/svg", el);
+      for (var i in attrs) {
+        e.setAttribute(i, attrs[i]);
+      }
+      return e;
+    }
+
+    function plotProgress(elBefore, fileName, fileLen) {
+      const l = document.createElement('p');
+      l.textContent = fileName;
+      elBefore.after(l);
+      const s = node("svg", { height: "10", width: "100%",
+        preserveAspectRatio: "none", viewBox: "0 0 100 10" });
+      s.appendChild(node("rect", { fill: "black", height: "10", width: "100" }));
+      const p = node("rect", { fill: "teal", height: "10" });
+      s.appendChild(p);
+      l.after(s);
+      let gotLen = 0;
+
+      return new TransformStream({
+        transform(chunk, controller) {
+          gotLen += chunk.byteLength;
+          p.setAttribute("width", gotLen * 100 / fileLen);
+          controller.enqueue(chunk);
+        },
+        flush(controller) {
+          p.setAttribute("fill", (gotLen === fileLen) ? "green" : "red");
+        }
+      });
+    }
+
     function processFile(evt) {
       const comp = (evt.target.id === "comp");
       for (const f of evt.target.files) {
         const outf = comp ? f.name + ".gz" : f.name.replace(/\.gz(ip)?$/i, "");
         let cs = comp ? new CompressionStream("gzip") : new DecompressionStream("gzip");
-        let rs = f.stream().pipeThrough(cs);
+        let rs = f.stream()
+          .pipeThrough(plotProgress(evt.target, f.name, f.size)).pipeThrough(cs);
         new Response(rs).blob()
           .then(blob => {
             const dl = document.createElement('a');
